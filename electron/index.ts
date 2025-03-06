@@ -90,25 +90,15 @@ ipcMain.handle(
         if (err) {
           reject(`Error extracting metadata for ${filePath}: ${err.message}`);
         } else {
-          let source: string | null = null;
-          const streamingSources = ['AMZN', 'NF', 'DSNP', 'HULU', 'HMAX', 'ATVP', 'HBO'];
+          const fileName = path.basename(filePath).toUpperCase();
 
-          for (let src of streamingSources) {
-            if (filePath.split('\\').pop()?.toUpperCase().includes(src)) {
-              source = src;
-              break;
-            }
-          }
+          const source =
+            ['AMZN', 'NF', 'DSNP', 'HULU', 'HMAX', 'ATVP', 'HBO'].find((src) => fileName.includes(src)) || null;
 
-          let downloadType: string | null = null;
-          const downloadSources = ['WEB-DL', 'WEBRIP', 'BLURAY', 'BDRIP', 'BRRIP', 'DVDRIP', 'HDTV', 'WEBDL'];
-
-          for (let type of downloadSources) {
-            if (filePath.split('\\').pop()?.toUpperCase().includes(type)) {
-              downloadType = type;
-              break;
-            }
-          }
+          const downloadType =
+            ['WEB-DL', 'WEBRIP', 'BLURAY', 'BDRIP', 'BRRIP', 'DVDRIP', 'HDTV', 'WEBDL'].find((src) =>
+              fileName.includes(src)
+            ) || null;
 
           const extractedInfo: ExtractedMediaInfo = {
             fileName: filePath.split('\\').pop() || '',
