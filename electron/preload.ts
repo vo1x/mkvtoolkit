@@ -1,12 +1,5 @@
 import { ipcRenderer, contextBridge } from 'electron';
 
-/**
- * Using the ipcRenderer directly in the browser through the contextBridge ist not really secure.
- * I advise using the Main/api way !!
- */
-contextBridge.exposeInMainWorld('ipcRenderer', ipcRenderer);
-
-// eslint-disable-next-line no-undef
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
   return new Promise((resolve) => {
     if (condition.includes(document.readyState)) {
@@ -26,24 +19,16 @@ const safeDOM = {
     if (!Array.from(parent.children).find((e) => e === child)) {
       return parent.appendChild(child);
     }
-
     return null;
   },
   remove(parent: HTMLElement, child: HTMLElement) {
     if (parent && Array.from(parent.children).find((e) => e === child)) {
       return parent.removeChild(child);
     }
-
     return null;
   }
 };
 
-/**
- * https://tobiasahlin.com/spinkit
- * https://connoratherton.com/loaders
- * https://projects.lukehaas.me/css-loaders
- * https://matejkustec.github.io/SpinThatShit
- */
 function useLoading() {
   const styleContent = `
   .sk-chase {
@@ -112,7 +97,7 @@ function useLoading() {
   `;
 
   const htmlContent = `
-    <div clas="sk-chase">
+    <div class="sk-chase">
       <div class="sk-chase-dot"></div>
       <div class="sk-chase-dot"></div>
       <div class="sk-chase-dot"></div>
@@ -155,19 +140,9 @@ declare global {
 }
 
 const api = {
-  /**
-   * Here you can expose functions to the renderer process
-   * so they can interact with the main (electron) side
-   * without security problems.
-   *
-   * The function below can accessed using `window.Main.sayHello`
-   */
   sendMessage: (message: string) => {
     ipcRenderer.send('message', message);
   },
-  /**
-    Here function for AppBar
-   */
   Minimize: () => {
     ipcRenderer.send('minimize');
   },
@@ -180,12 +155,13 @@ const api = {
   removeLoading: () => {
     removeLoading();
   },
-  /**
-   * Provide an easier way to listen to events
-   */
-  on: (channel: string, callback: (data: any) => void) => {
-    ipcRenderer.on(channel, (_, data) => callback(data));
-  }
+
+  openFileDialog: () => ipcRenderer.invoke('dialog:openFile'),
+  extractMediaInfo: (filePath: string) => ipcRenderer.invoke('extract-media-info', filePath),
+  addProps: ({ filePath, muxedBy, telegramChannel }: { filePath: string; muxedBy: string; telegramChannel: string }) =>
+    ipcRenderer.invoke('add-props', { filePath, muxedBy, telegramChannel }),
+  renameTracks: ({ filePath, tracks }: { filePath: any; tracks: any }) =>
+    ipcRenderer.invoke('rename-tracks', { filePath, tracks })
 };
 
 contextBridge.exposeInMainWorld('Main', api);
