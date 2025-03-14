@@ -8,3 +8,4 @@ export const getResolutionLabel = (height: number): string => {
   if (height <= 4320) return '8K';
   return `${height}p`;
 };
+

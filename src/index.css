@@ -1,7 +1,87 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import fonts with proper weights and variables */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+/* Define font family variables */
+:root {
+  /* Font family definitions */
+  --font-inter: 'Inter', sans-serif;
+  --font-jetbrains-mono: 'JetBrains Mono', monospace;
+
+  /* Rose Pine theme colors */
+  --rosePine-base: #232136;
+  --rosePine-surface: #2a273f;
+  --rosePine-overlay: #393552;
+  --rosePine-muted: #6e6a86;
+  --rosePine-subtle: #908caa;
+  --rosePine-text: #e0def4;
+  --rosePine-love: #eb6f92;
+  --rosePine-gold: #f6c177;
+  --rosePine-rose: #ea9a97;
+  --rosePine-pine: #3e8fb0;
+  --rosePine-foam: #9ccfd8;
+  --rosePine-iris: #c4a7e7;
+  --rosePine-highlight-low: #2a283e;
+  --rosePine-highlight-med: #44415a;
+  --rosePine-highlight-high: #56526e;
+
+  /* Font stack definitions */
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #44415a #2a273f;
+}
+
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+::-webkit-scrollbar-track {
+  background: #2a273f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #44415a;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #56526e;
+}
+
+@theme inline {
+  --color-rosePine-base: var(--rosePine-base);
+  --color-rosePine-surface: var(--rosePine-surface);
+  --color-rosePine-overlay: var(--rosePine-overlay);
+  --color-rosePine-muted: var(--rosePine-muted);
+  --color-rosePine-subtle: var(--rosePine-subtle);
+  --color-rosePine-text: var(--rosePine-text);
+  --color-rosePine-love: var(--rosePine-love);
+  --color-rosePine-gold: var(--rosePine-gold);
+  --color-rosePine-rose: var(--rosePine-rose);
+  --color-rosePine-pine: var(--rosePine-pine);
+  --color-rosePine-foam: var(--rosePine-foam);
+  --color-rosePine-iris: var(--rosePine-iris);
+  --color-rosePine-highlight-low: var(--rosePine-highlight-low);
+  --color-rosePine-highlight-med: var(--rosePine-highlight-med);
+  --color-rosePine-highlight-high: var(--rosePine-highlight-high);
+}
+
+body {
+  background: var(--rosePine-base);
+  color: var(--rosePine-text);
+  font-family: var(--font-sans);
+}
+
 
 /* For AppBar */
 .draggable {
@@ -11,11 +91,4 @@
 
 .undraggable {
   -webkit-app-region: no-drag;
-}
-
-@layer base {
-  html {
-    @apply bg-black;
-    @apply text-neutral-100;
-  }
 }

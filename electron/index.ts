@@ -12,10 +12,10 @@ import {
   AudioTrack,
   SubtitleTrack,
   ExtractedMediaInfo,
-  FileInfo,
   RenameTracksPayload,
   AddPropsPayload
 } from './types';
+import { getResolutionLabel } from './lib/helpers';
 
 const height = 720;
 const width = 1280;
@@ -29,12 +29,15 @@ function createWindow(): void {
     show: true,
     resizable: true,
     fullscreenable: true,
+    // transparent: true,
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false
     }
   });
+
+  // mainWindow.setBackgroundMaterial('mica');
 
   const port = process.env.PORT || 3000;
   const url = isDev ? `http://localhost:${port}` : join(__dirname, '../dist-vite/index.html');
@@ -161,39 +164,26 @@ ipcMain.handle(
 
                 let hdrType = '';
 
-                if (stream.side_data_list) {
-                  for (let sideData of stream.side_data_list) {
-                    if (sideData.side_data_type === 'Mastering display metadata') {
-                      hdrType = 'HDR';
-                      if (stream.transfer_characteristics) {
-                        const tc = stream.transfer_characteristics;
-                        if (tc === 'arib-std-b67') {
-                          hdrType = 'HLG';
-                        } else if (tc === 'smpte2084') {
-                          hdrType = 'HDR10';
-                        }
+                stream.side_data_list?.forEach((sideData: any) => {
+                  if (sideData.side_data_type === 'Mastering display metadata') {
+                    hdrType = 'HDR';
+                    if (stream.transfer_characteristics) {
+                      const tc = stream.transfer_characteristics;
+                      if (tc === 'arib-std-b67') {
+                        hdrType = 'HLG';
+                      } else if (tc === 'smpte2084') {
+                        hdrType = 'HDR10';
                       }
                     }
-                    if (sideData.side_data_type === 'Content light level metadata') {
-                      hdrType = 'HDR10';
-                    }
                   }
-                }
+                  if (sideData.side_data_type === 'Content light level metadata') {
+                    hdrType = 'HDR10';
+                  }
+                });
+
                 videoInfo.hdrType = hdrType;
 
-                const height = stream?.height ?? 0;
-                if (!height) videoInfo.quality = 'Unknown';
-
-                let resolution = '';
-                if (height <= 480) resolution = '480p';
-                else if (height <= 720) resolution = '720p';
-                else if (height <= 1080) resolution = '1080p';
-                else if (height <= 1440) resolution = '1440p';
-                else if (height <= 2160) resolution = '2160p';
-                else if (height <= 4320) resolution = '8K';
-                else resolution = `${height}p`;
-
-                videoInfo.quality = resolution;
+                videoInfo.quality = getResolutionLabel(stream?.height ?? 0);
 
                 if (stream.bits_per_raw_sample) {
                   videoInfo.bitDepth = `${stream.bits_per_raw_sample}-bit`;
@@ -281,32 +271,72 @@ ipcMain.handle(
   }
 );
 
+// ipcMain.handle(
+//   'rename-files',
+//   async (
+//     _event: IpcMainInvokeEvent,
+//     filesInfo: FileInfo[]
+//   ): Promise<{ success: boolean; results?: string[]; error?: any }> => {
+//     const renamePromises = filesInfo.map((fileInfo) => {
+//       const oldFilePath = fileInfo.oldFilePath;
+//       const newFilePath = path.join(path.dirname(oldFilePath), fileInfo.newFileName);
+
+//       return new Promise<string>((resolve, reject) => {
+//         fs.rename(oldFilePath, newFilePath, (err) => {
+//           if (err) {
+//             reject(`Failed to rename ${oldFilePath}: ${err.message}`);
+//           } else {
+//             resolve(`Successfully renamed ${oldFilePath} to ${newFilePath}`);
+//           }
+//         });
+//       });
+//     });
+
+//     try {
+//       const results = await Promise.all(renamePromises);
+//       return { success: true, results };
+//     } catch (error) {
+//       return { success: false, error };
+//     }
+//   }
+// );
+
+// Add this handler
 ipcMain.handle(
-  'rename-files',
+  'rename-file',
   async (
     _event: IpcMainInvokeEvent,
-    filesInfo: FileInfo[]
-  ): Promise<{ success: boolean; results?: string[]; error?: any }> => {
-    const renamePromises = filesInfo.map((fileInfo) => {
-      const oldFilePath = fileInfo.oldFilePath;
-      const newFilePath = path.join(path.dirname(oldFilePath), fileInfo.newFileName);
-
-      return new Promise<string>((resolve, reject) => {
-        fs.rename(oldFilePath, newFilePath, (err) => {
-          if (err) {
-            reject(`Failed to rename ${oldFilePath}: ${err.message}`);
-          } else {
-            resolve(`Successfully renamed ${oldFilePath} to ${newFilePath}`);
-          }
-        });
-      });
-    });
-
+    { oldPath, newName }: { oldPath: string; newName: string }
+  ): Promise<{ success: boolean; message?: string; error?: string }> => {
     try {
-      const results = await Promise.all(renamePromises);
-      return { success: true, results };
-    } catch (error) {
-      return { success: false, error };
+      // Validate inputs
+      if (!oldPath || !newName) {
+        throw new Error('Invalid input: Both oldPath and newName are required');
+      }
+
+      const dirPath = path.dirname(oldPath);
+      const newPath = path.join(dirPath, newName);
+      
+      console.log(`Renaming file from "${oldPath}" to "${newPath}"`);
+      
+      // Ensure the new name doesn't already exist
+      if (fs.existsSync(newPath)) {
+        throw new Error(`Destination file "${newName}" already exists`);
+      }
+      
+      // Perform the rename operation
+      fs.renameSync(oldPath, newPath);
+      
+      return {
+        success: true,
+        message: `Successfully renamed to "${newName}"`
+      };
+    } catch (error: any) {
+      console.error(`Error renaming file: ${error.message}`);
+      return {
+        success: false,
+        error: `Failed to rename file: ${error.message}`
+      };
     }
   }
 );

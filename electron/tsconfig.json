@@ -20,5 +20,5 @@
     "outDir": "../dist-electron"
   },
   "exclude": ["node_modules"],
-  "include": ["**/*.ts", "**/*.tsx", "**/*.js"]
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "../src/lib/mediainfo.ts"]
 }

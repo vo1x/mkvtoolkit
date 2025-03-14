@@ -161,7 +161,9 @@ const api = {
   addProps: ({ filePath, muxedBy, telegramChannel }: { filePath: string; muxedBy: string; telegramChannel: string }) =>
     ipcRenderer.invoke('add-props', { filePath, muxedBy, telegramChannel }),
   renameTracks: ({ filePath, tracks }: { filePath: any; tracks: any }) =>
-    ipcRenderer.invoke('rename-tracks', { filePath, tracks })
+    ipcRenderer.invoke('rename-tracks', { filePath, tracks }),
+  renameFile: ({ oldPath, newName }: { oldPath: string; newName: string }) =>
+    ipcRenderer.invoke('rename-file', { oldPath, newName })
 };
 
 contextBridge.exposeInMainWorld('Main', api);
